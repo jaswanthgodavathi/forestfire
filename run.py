@@ -4,17 +4,17 @@ import playsound
 import smtplib
 
 def playaudio():
-    playsound.playsound("alarm-sound.mp3",True)
+    playsound.playsound("alarm-sound.mp3", True)
 
 def send_email_function():
     recepientemail = "Fire engine email address"
     recepientemail = recepientemail.lower()
     try:
-        server = smtplib.SMTP('godavarthyram75@gmail.com',587)
+        server = smtplib.SMTP('godavarthyram75@gmail.com', 587)
         server.ehlo()
         server.starttls()
-        server.login('jaswanthgodavarthy@gmail.com','Bannu@123$')
-        server.sendmail('system_email',recepientemail, "Warning!!! A fire accident has been reported")
+        server.login('jaswanthgodavarthy@gmail.com', 'Bannu@123$')
+        server.sendmail('system_email', recepientemail, "Warning!!! A fire accident has been reported")
         print("sent to {}".format(recepientemail))
         server.close()
     except Exception as e:
@@ -24,65 +24,47 @@ Fire_Reported = 0
 Alarm_Status = False
 Email_status = False
 
-#if you want to turn on your webcam
-#video = cv2.VideoCapture(0)
+# Read the image
+image = cv2.imread('test1.jpg')
 
-#if you want to give the inbuilt video as input
-video = cv2.VideoCapture(0)
+# Resize the image
+image = cv2.resize(image, (1000, 1000))
 
-#Frame analyzation
-while True:
-    ret, frame = video.read()
+# Applying blur to the image
+blur = cv2.GaussianBlur(image, (15, 15), 0)
 
-    #resize the output frame
-    frame = cv2.resize(frame,(1000,1000))
+# Convert to HSV
+hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
 
-    #applying blur  to the video
-    blur = cv2.GaussianBlur(frame,(15,15),0)
+# Pattern representing the color of the fire
+lower = [18, 50, 50]
+upper = [35, 255, 255]
 
-    #convert to hsv
-    hsv = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
+lower = np.array(lower, dtype='uint8')
+upper = np.array(upper, dtype='uint8')
 
-    #pattern representing the color of the fire
-    lower = [18,50,50]
-    upper = [35,255,255]
+# Creating the mask
+mask = cv2.inRange(hsv, lower, upper)
 
-    lower = np.array(lower,dtype = 'uint8')
-    upper = np.array(upper,dtype = 'uint8')
+output = cv2.bitwise_and(image, hsv, mask=mask)
 
-    #creating the mask
-    mask = cv2.inRange(hsv,lower,upper)
+number_of_total = cv2.countNonZero(mask)
+# Measuring the size of the fire
+if int(number_of_total) > 15000:
+    # print("Fire detected")
+    Fire_Reported = Fire_Reported + 1
 
-    output = cv2.bitwise_and(frame,hsv,mask = mask)
+    if Fire_Reported >= 1:
+        if Alarm_Status == False:
+            playaudio()
+            Alarm_Status = True
 
-    number_of_total = cv2.countNonZero(mask)
-    #measuring the size of the fire
-    if int(number_of_total) > 15000:
-        #print("Fire detected")
-        Fire_Reported = Fire_Reported + 1
+        # for email
+        if Email_status == False:
+            send_email_function()
+            Email_status = True
 
-        if Fire_Reported >=1:
-            if Alarm_Status == False:
-                playaudio()
-                Alarm_Status = True
-
-            #for email
-            if Email_status == False:
-                send_email_function()
-                Email_status = True
-
-
-    #if video ends break the sys
-    if ret == False:
-        break
-
-    #cv2.imshow("Output: ",frame)
-
-    #to outptut the blur
-    cv2.imshow("Output: ",output)
-
-    if cv2.waitKey(1) & 0xFF == ord("q"):
-        break
-
+# Display the output
+cv2.imshow("Output: ", output)
+cv2.waitKey(0)
 cv2.destroyAllWindows()
-video.release()
