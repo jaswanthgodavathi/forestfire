@@ -10,10 +10,10 @@ def send_email_function():
     recepientemail = "Fire engine email address"
     recepientemail = recepientemail.lower()
     try:
-        server = smtplib.SMTP('godavarthyram75@gmail.com', 587)
+        server = smtplib.SMTP('.com', 587)
         server.ehlo()
         server.starttls()
-        server.login('jaswanthgodavarthy@gmail.com', 'Bannu@123$')
+        server.login('username, password')
         server.sendmail('system_email', recepientemail, "Warning!!! A fire accident has been reported")
         print("sent to {}".format(recepientemail))
         server.close()
